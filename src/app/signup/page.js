@@ -117,7 +117,7 @@ export default async function SignupPage({ searchParams }) {
       ) : null}
 
       <div className={styles.row}>
-        <h1 className={styles.h1}>Welcome to Jellyfin</h1>
+        <h1 className={styles.h1}>Welcome to Jellyfin / Emby</h1>
         <form action={async () => {
           'use server';
           await clearSession();
@@ -128,7 +128,7 @@ export default async function SignupPage({ searchParams }) {
       </div>
 
       <p className={styles.p}>
-        You’re joining a private Jellyfin server. Use the steps below to request access and get connected on your device.
+        You’re joining a private Jellyfin or Emby server. Use the steps below to request access and get connected on your device.
       </p>
 
       <PosterCarousel durationSeconds={marqueeSeconds} />

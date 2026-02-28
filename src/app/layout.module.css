@@ -6,7 +6,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 18px 16px 8px;
+  padding: 18px 16px 10px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.22);
 }
 
 .logoLink {
@@ -17,7 +18,7 @@
 
 .logo {
   width: auto;
-  height: 56px;
+  height: 192px;
 }
 
 .main {

@@ -36,7 +36,7 @@ export default function RootLayout({ children }) {
                 width={512}
                 height={256}
                 priority
-                style={{ width: 'auto', height: '56px' }}
+                style={{ width: 'auto', height: '192px' }}
               />
             </Link>
           </header>
