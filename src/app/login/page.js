@@ -37,7 +37,7 @@ export default async function LoginPage({ searchParams }) {
         </p>
 
         <form method="post" action="/api/logout-form">
-          <button className={styles.linkButton} type="submit">Logout</button>
+          <button className={styles.button} type="submit">Logout</button>
         </form>
       </div>
     );
@@ -57,6 +57,16 @@ export default async function LoginPage({ searchParams }) {
       <h1 className={styles.h1}>Login</h1>
 
       <LoginFormClient initialErrorKey={errorKey} />
+
+      <div className={styles.block}>
+        <h2 className={styles.h2} style={{ marginTop: 0 }}>Having trouble?</h2>
+        <p className={styles.p}>
+          If you’re stuck in a loop or switching passwords, clear session cookies and try again.
+        </p>
+        <form method="post" action="/api/logout-form">
+          <button className={styles.button} type="submit">Clear session cookies</button>
+        </form>
+      </div>
     </div>
   );
 }
