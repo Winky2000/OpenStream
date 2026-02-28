@@ -6,6 +6,8 @@ import { randomToken, sha256Hex } from '@/lib/crypto';
 import { sendInviteEmail } from '@/lib/email';
 import { getRequestOrigin } from '@/lib/request';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminPage() {
   const state = readState();
   if (!state.setup?.complete) redirect('/setup');

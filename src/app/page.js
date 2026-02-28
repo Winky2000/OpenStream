@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { readState } from '@/lib/store';
 import { getSession } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
   const state = readState();
   if (!state.setup?.complete) redirect('/setup');

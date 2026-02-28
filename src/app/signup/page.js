@@ -8,6 +8,8 @@ import { getRequestOrigin } from '@/lib/request';
 import PosterCarousel from '@/components/PosterCarousel';
 import ServerLibraryPicker from '@/components/ServerLibraryPicker';
 
+export const dynamic = 'force-dynamic';
+
 export default async function SignupPage({ searchParams }) {
   const state = readState();
   if (!state.setup?.complete) redirect('/setup');

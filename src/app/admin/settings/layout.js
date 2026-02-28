@@ -3,6 +3,8 @@ import styles from '../../ui.module.css';
 import { readState } from '@/lib/store';
 import { getSession } from '@/lib/session';
 
+export const dynamic = 'force-dynamic';
+
 export default async function AdminSettingsLayout({ children }) {
   const state = readState();
   if (!state.setup?.complete) redirect('/setup');
