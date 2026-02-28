@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server';
 import { readState, getPublicBaseUrl } from '@/lib/store';
 import { getSessionCookieName, getSessionSecretDiagnostics } from '@/lib/session';
+import { headers } from 'next/headers';
 
 export async function GET() {
+  const h = await headers();
   const state = readState();
 
   const smtpHost = String(state.smtp?.host || '').trim();
@@ -26,6 +28,8 @@ export async function GET() {
   return NextResponse.json({
     ok,
     time: new Date().toISOString(),
+    host: h.get('host') || '',
+    proto: h.get('x-forwarded-proto') || '',
     cookieName: getSessionCookieName(),
     legacyCookieName: 'openstream_session',
     setupComplete: Boolean(state.setup?.complete),

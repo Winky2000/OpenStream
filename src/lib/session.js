@@ -77,6 +77,12 @@ function fileAccessFlags(p) {
 }
 
 export function getSessionSecretDiagnostics() {
+  // Force the secret to load so `source` is meaningful.
+  try {
+    getSecret();
+  } catch {
+    // ignore; diagnostics will still show file access
+  }
   const p = cachedSecretPath || getSecretPath();
   const access = fileAccessFlags(p);
   return {
