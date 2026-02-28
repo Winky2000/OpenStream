@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/session';
 import { readState } from '@/lib/store';
 
+export const dynamic = 'force-dynamic';
+
+function noStore(res) {
+  res.headers.set('Cache-Control', 'private, no-store');
+  res.headers.append('Vary', 'Cookie');
+  return res;
+}
+
 function mulberry32(seed) {
   let t = seed >>> 0;
   return function rand() {
@@ -70,7 +78,7 @@ async function fetchServerPosters({ baseUrl, apiKey, limit, includeItemTypes }) 
 
 export async function GET(req) {
   const session = await getSession();
-  if (!session) return new NextResponse('Unauthorized.', { status: 401 });
+  if (!session) return noStore(new NextResponse('Unauthorized.', { status: 401 }));
 
   const url = new URL(req.url);
   const type = String(url.searchParams.get('type') || 'all').toLowerCase();
@@ -85,7 +93,7 @@ export async function GET(req) {
   );
 
   if (enabledServers.length === 0) {
-    return NextResponse.json({ posters: [] });
+    return noStore(NextResponse.json({ posters: [] }));
   }
 
   const desired = 25;
@@ -125,5 +133,5 @@ export async function GET(req) {
     if (out.length >= desired) break;
   }
 
-  return NextResponse.json({ posters: out, filter: filterKey });
+  return noStore(NextResponse.json({ posters: out, filter: filterKey }));
 }
