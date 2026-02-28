@@ -1,0 +1,9 @@
+services:
+  openstream:
+    build: .
+    ports:
+      - "3070:3070"
+    environment:
+      - NODE_ENV=production
+      - PORT=3070
+      - HOSTNAME=0.0.0.0
