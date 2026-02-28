@@ -40,10 +40,12 @@ export async function POST(req) {
   }
 
   const res = NextResponse.json({ ok: true, role });
+  const proto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
+  const secure = proto === 'https';
   res.cookies.set(getSessionCookieName(), createSessionCookieValue(role), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     path: '/',
   });
   return res;

@@ -6,7 +6,10 @@ import { verifyPassword } from '@/lib/crypto';
 
 export const dynamic = 'force-dynamic';
 
-export default async function LoginPage() {
+export default async function LoginPage({ searchParams }) {
+  const sp = await Promise.resolve(searchParams);
+  const errorKey = String(sp?.error || '');
+
   const state = readState();
   if (!state.setup?.complete) {
     return (
@@ -26,28 +29,51 @@ export default async function LoginPage() {
 
   async function loginAction(formData) {
     'use server';
-    const password = String(formData.get('password') || '');
+    try {
+      const password = String(formData.get('password') || '');
 
-    const state2 = readState();
-    const adminHash = String(state2.setup?.adminPasswordHash || '');
-    const guestHash = String(state2.setup?.guestPasswordHash || '');
+      const state2 = readState();
+      if (!state2.setup?.complete) redirect('/setup');
 
-    let role = '';
-    if (adminHash && verifyPassword(password, adminHash)) {
-      role = 'admin';
-    } else if (guestHash && verifyPassword(password, guestHash)) {
-      role = 'guest';
-    } else {
-      throw new Error('Invalid password.');
+      const adminHash = String(state2.setup?.adminPasswordHash || '');
+      const guestHash = String(state2.setup?.guestPasswordHash || '');
+
+      let role = '';
+      if (adminHash && verifyPassword(password, adminHash)) {
+        role = 'admin';
+      } else if (guestHash && verifyPassword(password, guestHash)) {
+        role = 'guest';
+      } else {
+        redirect('/login?error=invalid');
+      }
+
+      await setSession(role);
+      redirect(role === 'admin' ? '/admin' : '/signup');
+    } catch (e) {
+      console.error('[OpenStream] loginAction failed', e);
+      redirect('/login?error=unexpected');
     }
-
-    await setSession(role);
-    redirect(role === 'admin' ? '/admin' : '/signup');
   }
+
+  const errorMessage =
+    errorKey === 'invalid'
+      ? 'Invalid password.'
+      : errorKey === 'unexpected'
+        ? 'Login failed. Please try again.'
+        : '';
 
   return (
     <div className={styles.container}>
       <h1 className={styles.h1}>Login</h1>
+
+      {errorMessage ? (
+        <div className={styles.block} role="alert">
+          <p className={styles.p} style={{ margin: 0 }}>
+            <strong>{errorMessage}</strong>
+          </p>
+        </div>
+      ) : null}
+
       <form className={styles.form} action={loginAction}>
         <label className={styles.label}>
           Password

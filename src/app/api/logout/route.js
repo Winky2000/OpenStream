@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getSessionCookieName } from '@/lib/session';
 
-export async function POST() {
+export async function POST(req) {
+  const proto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
+  const secure = proto === 'https';
   const res = NextResponse.json({ ok: true });
   res.cookies.set(getSessionCookieName(), '', {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     path: '/',
     maxAge: 0,
   });
