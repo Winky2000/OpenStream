@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { readState, getPublicBaseUrl } from '@/lib/store';
+import { getSessionCookieName } from '@/lib/session';
 
 export async function GET() {
   const state = readState();
@@ -24,6 +25,8 @@ export async function GET() {
   return NextResponse.json({
     ok,
     time: new Date().toISOString(),
+    cookieName: getSessionCookieName(),
+    legacyCookieName: 'openstream_session',
     setupComplete: Boolean(state.setup?.complete),
     publicBaseUrlConfigured: Boolean(statePublicBaseUrl || publicBaseUrl),
     publicBaseUrlSource: statePublicBaseUrl ? 'state' : publicBaseUrl ? 'env' : 'origin',
