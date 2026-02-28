@@ -4,10 +4,20 @@ import { readState } from '@/lib/store';
 import { getSession, setSession } from '@/lib/session';
 import { verifyPassword } from '@/lib/crypto';
 
+export const dynamic = 'force-dynamic';
+
 export default async function LoginPage() {
   const state = readState();
   if (!state.setup?.complete) {
-    redirect('/setup');
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.h1}>Setup required</h1>
+        <p className={styles.p}>OpenStream hasn’t been set up yet.</p>
+        <p className={styles.p}>
+          <a className={styles.a} href="/setup">Go to setup</a>
+        </p>
+      </div>
+    );
   }
 
   const session = await getSession();

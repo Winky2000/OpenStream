@@ -8,7 +8,15 @@ export const dynamic = 'force-dynamic';
 export default function SetupPage({ searchParams }) {
   const state = readState();
   if (state.setup?.complete) {
-    redirect('/login');
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.h1}>Setup already completed</h1>
+        <p className={styles.p}>OpenStream setup is already complete.</p>
+        <p className={styles.p}>
+          <a className={styles.a} href="/login">Go to login</a>
+        </p>
+      </div>
+    );
   }
 
   const errRaw = String(searchParams?.err || '');
