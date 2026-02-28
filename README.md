@@ -36,11 +36,20 @@ Open http://localhost:3070.
 
 ## Docker (production)
 
-Run:
+1) Create a `.env` (recommended)
+
+OpenStream uses a session cookie for login. For production, you should set a stable `OPENSTREAM_SESSION_SECRET` so sessions remain valid across container recreates.
+
+- Copy the example file: `.env.example` → `.env`
+- Generate a secret (PowerShell):
+	- `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
+	- Set it in `.env` as `OPENSTREAM_SESSION_SECRET=...`
+
+2) Run:
 
 ```bash
 docker compose pull
-docker compose up --build
+docker compose up -d
 ```
 
 This will pull the published image from GHCR (default tag: `latest`).
@@ -57,5 +66,12 @@ An append-only audit log is stored in the state file and viewable in **Admin set
 
 - Optional: set `NEXT_PUBLIC_OPENSTREAM_POSTER_MARQUEE_SECONDS` to control the poster carousel speed (default: `55`). Restart the app/container after changing it.
 - OpenStream stores state in a local JSON file (path controlled by `OPENSTREAM_DATA_PATH`).
-- For production, set `OPENSTREAM_SESSION_SECRET` (for Compose, put it in `.env`) so login sessions remain valid across restarts.
+- Set `OPENSTREAM_PUBLIC_BASE_URL` to the URL users use to access OpenStream (used for invite links).
+	- Examples: `http://192.168.1.167:3070` (LAN) or `https://openstream.example.com` (reverse proxy)
+- For production, set `OPENSTREAM_SESSION_SECRET` (for Compose, put it in `.env`) so login sessions remain valid across container recreates.
 - This is an MVP; we can tighten validations, add resend/expire flows, and harden the Jellyfin/Emby API integration as we go.
+
+### Troubleshooting
+
+- Check runtime status: `/api/health`
+- Confirm which build is running: `/api/version`
