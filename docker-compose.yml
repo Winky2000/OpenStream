@@ -13,6 +13,8 @@ services:
       # Recommended: set a stable secret so sessions survive container recreates.
       # Put it in a local .env file (see .env.example).
       - OPENSTREAM_SESSION_SECRET=${OPENSTREAM_SESSION_SECRET}
+      # Optional: enable debug endpoints for troubleshooting.
+      # - OPENSTREAM_DEBUG_ENDPOINTS=1
       # Optional: poster carousel speed (seconds per full loop). Default is 55.
       # - NEXT_PUBLIC_OPENSTREAM_POSTER_MARQUEE_SECONDS=55
     volumes:
