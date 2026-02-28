@@ -28,6 +28,12 @@ export async function POST(req) {
     guestPasswordHash: hashPassword(guestPassword),
   };
 
-  writeState(state);
-  return NextResponse.json({ ok: true });
+  try {
+    writeState(state);
+    return NextResponse.json({ ok: true });
+  } catch (e) {
+    const msg = e && typeof e === 'object' && 'message' in e ? String(e.message || '') : String(e || '');
+    console.error('api/setup failed while writing state:', msg);
+    return new NextResponse('Setup failed: unable to write state file. Check volume/path permissions.', { status: 500 });
+  }
 }
