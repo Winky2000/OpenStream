@@ -1,37 +1,37 @@
 import { redirect } from 'next/navigation';
 import styles from '../ui.module.css';
 import { readState } from '@/lib/store';
-import { getSession } from '@/lib/session';
-import { getRequestOrigin } from '@/lib/request';
+import { getSession, setSession } from '@/lib/session';
+import { verifyPassword } from '@/lib/crypto';
 
-export default function LoginPage() {
+export default async function LoginPage() {
   const state = readState();
   if (!state.setup?.complete) {
     redirect('/setup');
   }
 
-  const session = getSession();
+  const session = await getSession();
   if (session?.role === 'admin') redirect('/admin');
   if (session?.role === 'guest') redirect('/signup');
 
   async function loginAction(formData) {
     'use server';
-    const role = String(formData.get('role') || 'guest');
     const password = String(formData.get('password') || '');
 
-    const origin = getRequestOrigin();
-    const res = await fetch(`${origin}/api/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role, password }),
-      cache: 'no-store',
-    });
+    const state2 = readState();
+    const adminHash = String(state2.setup?.adminPasswordHash || '');
+    const guestHash = String(state2.setup?.guestPasswordHash || '');
 
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || 'Login failed');
+    let role = '';
+    if (adminHash && verifyPassword(password, adminHash)) {
+      role = 'admin';
+    } else if (guestHash && verifyPassword(password, guestHash)) {
+      role = 'guest';
+    } else {
+      throw new Error('Invalid password.');
     }
 
+    await setSession(role);
     redirect(role === 'admin' ? '/admin' : '/signup');
   }
 
@@ -39,14 +39,6 @@ export default function LoginPage() {
     <div className={styles.container}>
       <h1 className={styles.h1}>Login</h1>
       <form className={styles.form} action={loginAction}>
-        <label className={styles.label}>
-          Role
-          <select className={styles.input} name="role" defaultValue="guest">
-            <option value="guest">Guest</option>
-            <option value="admin">Admin</option>
-          </select>
-        </label>
-
         <label className={styles.label}>
           Password
           <input className={styles.input} type="password" name="password" required />

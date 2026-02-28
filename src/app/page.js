@@ -2,11 +2,11 @@ import { redirect } from 'next/navigation';
 import { readState } from '@/lib/store';
 import { getSession } from '@/lib/session';
 
-export default function Home() {
+export default async function Home() {
   const state = readState();
   if (!state.setup?.complete) redirect('/setup');
 
-  const session = getSession();
+  const session = await getSession();
   if (!session) redirect('/login');
 
   redirect(session.role === 'admin' ? '/admin' : '/signup');

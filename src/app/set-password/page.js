@@ -3,19 +3,27 @@ import styles from '../ui.module.css';
 import { readState } from '@/lib/store';
 import { getRequestOrigin } from '@/lib/request';
 
-export default function SetPasswordPage({ searchParams }) {
+export default async function SetPasswordPage({ searchParams }) {
   const state = readState();
   if (!state.setup?.complete) redirect('/setup');
 
-  const token = String(searchParams?.token || '');
-  const done = String(searchParams?.done || '') === '1';
+  const sp = await Promise.resolve(searchParams);
+  const token = String(sp?.token || '');
+  const done = String(sp?.done || '') === '1';
+  const errRaw = String(sp?.err || '');
+  let err = '';
+  try {
+    err = errRaw ? decodeURIComponent(errRaw) : '';
+  } catch {
+    err = errRaw;
+  }
 
   async function setPasswordAction(formData) {
     'use server';
     const token2 = String(formData.get('token') || '');
     const password = String(formData.get('password') || '');
 
-    const origin = getRequestOrigin();
+    const origin = await getRequestOrigin();
     const res = await fetch(`${origin}/api/set-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -25,7 +33,8 @@ export default function SetPasswordPage({ searchParams }) {
 
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(text || 'Failed to set password');
+      const safe = encodeURIComponent(String(text || 'Failed to set password').slice(0, 400));
+      redirect(`/set-password?token=${encodeURIComponent(token2)}&err=${safe}`);
     }
 
     redirect('/set-password?done=1');
@@ -38,6 +47,10 @@ export default function SetPasswordPage({ searchParams }) {
 
       {done ? (
         <p className={styles.p}><strong>Success.</strong> Your account was created. You can now log in to Jellyfin/Emby with your username and password.</p>
+      ) : null}
+
+      {!done && err ? (
+        <p className={styles.p}><strong>Couldn’t create your account.</strong> {err}</p>
       ) : null}
 
       {done ? null : (

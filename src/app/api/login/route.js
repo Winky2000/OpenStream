@@ -1,9 +1,18 @@
 import { NextResponse } from 'next/server';
 import { readState } from '@/lib/store';
 import { verifyPassword } from '@/lib/crypto';
-import { setSession } from '@/lib/session';
+import { createSessionCookieValue, getSessionCookieName } from '@/lib/session';
+import { rateLimit, pruneRateLimitBuckets } from '@/lib/rateLimit';
 
 export async function POST(req) {
+  pruneRateLimitBuckets({ maxAgeMs: 60 * 60 * 1000 });
+  const rl = rateLimit(req, { keyPrefix: 'login', limit: 20, windowMs: 15 * 60 * 1000 });
+  if (!rl.ok) {
+    const res = new NextResponse('Too many requests. Please try again later.', { status: 429 });
+    res.headers.set('Retry-After', String(rl.retryAfterSeconds));
+    return res;
+  }
+
   let body;
   try {
     body = await req.json();
@@ -11,23 +20,31 @@ export async function POST(req) {
     body = {};
   }
 
-  const role = String(body.role || 'guest');
   const password = String(body.password || '');
-
-  if (role !== 'admin' && role !== 'guest') {
-    return new NextResponse('Invalid role.', { status: 400 });
-  }
 
   const state = readState();
   if (!state.setup?.complete) {
     return new NextResponse('Setup not completed.', { status: 400 });
   }
 
-  const hash = role === 'admin' ? state.setup.adminPasswordHash : state.setup.guestPasswordHash;
-  if (!verifyPassword(password, hash)) {
+  const adminHash = String(state.setup.adminPasswordHash || '');
+  const guestHash = String(state.setup.guestPasswordHash || '');
+
+  let role = '';
+  if (adminHash && verifyPassword(password, adminHash)) {
+    role = 'admin';
+  } else if (guestHash && verifyPassword(password, guestHash)) {
+    role = 'guest';
+  } else {
     return new NextResponse('Invalid password.', { status: 401 });
   }
 
-  setSession(role);
-  return NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true, role });
+  res.cookies.set(getSessionCookieName(), createSessionCookieValue(role), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  });
+  return res;
 }

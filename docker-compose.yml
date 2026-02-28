@@ -9,5 +9,7 @@ services:
       - HOSTNAME=0.0.0.0
       - OPENSTREAM_DATA_PATH=/app/data/openstream.json
       - OPENSTREAM_PUBLIC_BASE_URL=https://openstream.winkys.com
+      # Optional: poster carousel speed (seconds per full loop). Default is 55.
+      # - NEXT_PUBLIC_OPENSTREAM_POSTER_MARQUEE_SECONDS=55
     volumes:
       - ./data:/app/data

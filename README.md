@@ -10,6 +10,20 @@ OpenStream is a lightweight signup + invite flow for Jellyfin/Emby.
 - After the user sets a password, OpenStream provisions the user on Jellyfin/Emby (admin API key required).
 - Admins configure SMTP + Jellyfin/Emby settings and see signups in `/admin`.
 
+## Requests app (Seerr)
+
+OpenStream can optionally link to your Requests app during signup and (best-effort) create/import the provisioned user into Seerr.
+
+- Configure this in **Admin settings → Requests (Jellyseerr/Overseerr)**.
+- If you provide an API key, OpenStream will attempt to import the new user into Seerr after provisioning.
+- **Set Seerr local password during provisioning**:
+	- Enabled: OpenStream will attempt to set a Seerr local-user password using the password the user just chose on the invite page (the password is not stored by OpenStream).
+	- Disabled: OpenStream will create the Seerr user without a password so Seerr can email the user a set-password link.
+
+Notes:
+- Requests user import only applies to **Jellyfin** provisioning.
+- Seerr integration is best-effort: provisioning succeeds even if the Seerr call fails.
+
 ## Getting started
 
 Run the development server:
@@ -30,13 +44,15 @@ docker compose up --build
 
 This uses port `3070` and persists state to `./data/openstream.json`.
 
+OpenStream keeps a small rolling set of backups of the state file on each write:
+
+- `openstream.json.bak1` … `openstream.json.bak5`
+
+An append-only audit log is stored in the state file and viewable in **Admin settings → Audit**.
+
 ### Required admin configuration
 
-- Configure SMTP and Jellyfin/Emby base URL + admin API key in `/admin/settings`.
-- Set `OPENSTREAM_PUBLIC_BASE_URL` (used for the emailed invite link). In Docker this is set in `docker-compose.yml`.
-
-## Notes
-
+- Optional: set `NEXT_PUBLIC_OPENSTREAM_POSTER_MARQUEE_SECONDS` to control the poster carousel speed (default: `55`). Restart the app/container after changing it.
 - OpenStream stores state in a local JSON file (path controlled by `OPENSTREAM_DATA_PATH`).
 - For production, set `OPENSTREAM_SESSION_SECRET` so login sessions remain valid across restarts.
 - This is an MVP; we can tighten validations, add resend/expire flows, and harden the Jellyfin/Emby API integration as we go.

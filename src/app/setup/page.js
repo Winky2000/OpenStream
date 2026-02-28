@@ -14,7 +14,7 @@ export default function SetupPage() {
     const adminPassword = String(formData.get('adminPassword') || '');
     const guestPassword = String(formData.get('guestPassword') || '');
 
-    const origin = getRequestOrigin();
+    const origin = await getRequestOrigin();
     const res = await fetch(`${origin}/api/setup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

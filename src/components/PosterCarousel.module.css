@@ -1,0 +1,71 @@
+.wrap {
+  margin: 16px 0 12px;
+}
+
+.viewport {
+  overflow: hidden;
+  border: 1px solid rgba(127, 127, 127, 0.3);
+  border-radius: 12px;
+}
+
+.track {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  width: max-content;
+  will-change: transform;
+  animation: posterMarquee var(--posterMarqueeDuration, 55s) linear infinite;
+}
+
+.poster {
+  height: 160px;
+  width: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(127, 127, 127, 0.25);
+  flex: 0 0 auto;
+  background: rgba(127, 127, 127, 0.08);
+}
+
+@keyframes posterMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+  }
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 0 0;
+}
+
+.pill {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(127, 127, 127, 0.45);
+  background: rgba(127, 127, 127, 0.08);
+  color: inherit;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.pillActiveAll {
+  background: var(--stepHeaderBg3);
+}
+
+.pillActiveMovies {
+  background: var(--stepHeaderBg4);
+}
+
+.pillActiveTv {
+  background: var(--stepHeaderBg1);
+}

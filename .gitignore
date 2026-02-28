@@ -17,6 +17,12 @@
 /.next/
 /out/
 
+# runtime state
+/data/
+
+# build cache
+/.swc/
+
 # production
 /build
 
