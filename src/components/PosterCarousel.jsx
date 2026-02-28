@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import styles from './PosterCarousel.module.css';
 
 export default function PosterCarousel({ durationSeconds = 55 }) {
@@ -36,7 +35,19 @@ export default function PosterCarousel({ durationSeconds = 55 }) {
   if (error) return null;
   if (!posters || posters.length === 0) return null;
 
-  const doubled = posters.concat(posters);
+  const safePosters = posters.filter((p) => {
+    if (!p || typeof p !== 'object') return false;
+    if (typeof p.url !== 'string') return false;
+    const u = p.url.trim();
+    if (!u) return false;
+    // We only expect absolute URLs from /api/posters.
+    if (!/^https?:\/\//i.test(u)) return false;
+    return true;
+  });
+
+  if (safePosters.length === 0) return null;
+
+  const doubled = safePosters.concat(safePosters);
 
   return (
     <div className={styles.wrap} aria-label="Posters">
@@ -46,14 +57,15 @@ export default function PosterCarousel({ durationSeconds = 55 }) {
           style={{ '--posterMarqueeDuration': `${durationSecondsNumber}s` }}
         >
           {doubled.map((p, idx) => (
-            <Image
+            <img
               key={`${p.url}-${idx}`}
               className={styles.poster}
               src={p.url}
               alt={p.title || 'Poster'}
               width={300}
               height={450}
-              unoptimized
+              loading="lazy"
+              decoding="async"
               draggable={false}
             />
           ))}

@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { cookies } from 'next/headers';
+import { headers } from 'next/headers';
 
 const COOKIE_NAME = 'openstream_session';
 
@@ -95,21 +96,29 @@ export function getSessionCookieName() {
 export async function setSession(role) {
   const value = createSessionCookieValue(role);
 
+  const h = await headers();
+  const proto = String(h.get('x-forwarded-proto') || '').toLowerCase();
+  const secure = proto === 'https';
+
   const c = await cookies();
   c.set(COOKIE_NAME, value, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     path: '/',
   });
 }
 
 export async function clearSession() {
+  const h = await headers();
+  const proto = String(h.get('x-forwarded-proto') || '').toLowerCase();
+  const secure = proto === 'https';
+
   const c = await cookies();
   c.set(COOKIE_NAME, '', {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure,
     path: '/',
     maxAge: 0,
   });
