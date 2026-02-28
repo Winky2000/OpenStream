@@ -57,5 +57,5 @@ An append-only audit log is stored in the state file and viewable in **Admin set
 
 - Optional: set `NEXT_PUBLIC_OPENSTREAM_POSTER_MARQUEE_SECONDS` to control the poster carousel speed (default: `55`). Restart the app/container after changing it.
 - OpenStream stores state in a local JSON file (path controlled by `OPENSTREAM_DATA_PATH`).
-- For production, set `OPENSTREAM_SESSION_SECRET` so login sessions remain valid across restarts.
+- For production, set `OPENSTREAM_SESSION_SECRET` (for Compose, put it in `.env`) so login sessions remain valid across restarts.
 - This is an MVP; we can tighten validations, add resend/expire flows, and harden the Jellyfin/Emby API integration as we go.
