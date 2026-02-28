@@ -38,4 +38,5 @@ This uses port `3070` and persists state to `./data/openstream.json`.
 ## Notes
 
 - OpenStream stores state in a local JSON file (path controlled by `OPENSTREAM_DATA_PATH`).
+- For production, set `OPENSTREAM_SESSION_SECRET` so login sessions remain valid across restarts.
 - This is an MVP; we can tighten validations, add resend/expire flows, and harden the Jellyfin/Emby API integration as we go.
