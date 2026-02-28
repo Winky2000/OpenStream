@@ -42,6 +42,30 @@ export async function POST(req) {
   const res = NextResponse.json({ ok: true, role });
   const proto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
   const secure = proto === 'https';
+
+  // Clear any path-scoped cookies that might exist from older builds.
+  res.cookies.set(getSessionCookieName(), '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/login',
+    maxAge: 0,
+  });
+  res.cookies.set('openstream_session', '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    maxAge: 0,
+  });
+  res.cookies.set('openstream_session', '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/login',
+    maxAge: 0,
+  });
+
   res.cookies.set(getSessionCookieName(), createSessionCookieValue(role), {
     httpOnly: true,
     sameSite: 'lax',

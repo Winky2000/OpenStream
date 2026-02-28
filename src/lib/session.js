@@ -7,6 +7,20 @@ import { headers } from 'next/headers';
 const COOKIE_NAME = 'openstream_session_v2';
 const LEGACY_COOKIE_NAME = 'openstream_session';
 
+const CLEAR_PATHS = ['/', '/login'];
+
+function clearCookiePaths(cookieJar, name, paths, { secure }) {
+  for (const p of paths) {
+    cookieJar.set(name, '', {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure,
+      path: p,
+      maxAge: 0,
+    });
+  }
+}
+
 function base64url(buf) {
   return Buffer.from(buf)
     .toString('base64')
@@ -102,20 +116,17 @@ export async function setSession(role) {
   const secure = proto === 'https';
 
   const c = await cookies();
+
+  // Best-effort: clear any legacy or path-scoped cookies to avoid redirect loops.
+  // (Older builds may have created cookies scoped to Path=/login by default.)
+  clearCookiePaths(c, COOKIE_NAME, ['/login'], { secure });
+  clearCookiePaths(c, LEGACY_COOKIE_NAME, CLEAR_PATHS, { secure });
+
   c.set(COOKIE_NAME, value, {
     httpOnly: true,
     sameSite: 'lax',
     secure,
     path: '/',
-  });
-
-  // Best-effort: clear any legacy cookie to avoid redirect loops.
-  c.set(LEGACY_COOKIE_NAME, '', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure,
-    path: '/',
-    maxAge: 0,
   });
 }
 
@@ -125,21 +136,8 @@ export async function clearSession() {
   const secure = proto === 'https';
 
   const c = await cookies();
-  c.set(COOKIE_NAME, '', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure,
-    path: '/',
-    maxAge: 0,
-  });
-
-  c.set(LEGACY_COOKIE_NAME, '', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure,
-    path: '/',
-    maxAge: 0,
-  });
+  clearCookiePaths(c, COOKIE_NAME, CLEAR_PATHS, { secure });
+  clearCookiePaths(c, LEGACY_COOKIE_NAME, CLEAR_PATHS, { secure });
 }
 
 export async function getSession() {
