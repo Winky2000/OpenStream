@@ -3,6 +3,7 @@ import { readState, getPublicBaseUrl } from '@/lib/store';
 import { getSessionCookieName, getSessionSecretDiagnostics } from '@/lib/session';
 import { headers } from 'next/headers';
 import { instanceId } from '@/lib/instance';
+import { debugEndpointsEnabled } from '@/lib/debug';
 
 export async function GET() {
   const h = await headers();
@@ -19,14 +20,14 @@ export async function GET() {
   const publicBaseUrl = getPublicBaseUrl();
   const statePublicBaseUrl = String(state.publicBaseUrl || '').trim().replace(/\/+$/, '');
   const sessionSecretFromEnv = Boolean(String(process.env.OPENSTREAM_SESSION_SECRET || '').trim());
-  const sessionSecret = getSessionSecretDiagnostics();
+  const sessionSecretDiagnostics = getSessionSecretDiagnostics();
 
   const seerrUrl = String(state.seerr?.url || '').trim();
   const seerrHasApiKey = Boolean(String(state.seerr?.apiKey || '').trim());
 
   const ok = Boolean(state.setup?.complete);
 
-  return NextResponse.json({
+  const payload = {
     ok,
     time: new Date().toISOString(),
     instanceId,
@@ -39,11 +40,20 @@ export async function GET() {
     publicBaseUrlSource: statePublicBaseUrl ? 'state' : publicBaseUrl ? 'env' : 'origin',
     publicBaseUrlValue: statePublicBaseUrl || publicBaseUrl || '',
     sessionSecretFromEnv,
-    sessionSecret,
+    sessionSecret: debugEndpointsEnabled()
+      ? sessionSecretDiagnostics
+      : {
+          source: sessionSecretDiagnostics.source,
+          fromEnv: sessionSecretDiagnostics.fromEnv,
+        },
     smtpConfigured: Boolean(smtpHost && smtpHasFrom),
     enabledServers: enabledServers.length,
     enabledServersConfigured,
     seerrConfigured: Boolean(seerrUrl),
     seerrHasApiKey,
-  });
+  };
+
+  const res = NextResponse.json(payload);
+  res.headers.set('Cache-Control', 'no-store');
+  return res;
 }

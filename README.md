@@ -10,6 +10,15 @@ OpenStream is a lightweight signup + invite flow for Jellyfin/Emby.
 - After the user sets a password, OpenStream provisions the user on Jellyfin/Emby (admin API key required).
 - Admins configure SMTP + Jellyfin/Emby settings and see signups in `/admin`.
 
+## Pages and roles
+
+- `/setup`: first-run setup (sets admin + guest passwords).
+- `/login`: login page (admin or guest).
+- `/signup`: request access (requires you to be logged in).
+- `/set-password?token=...`: invite link landing page; user sets their password and provisioning runs.
+- `/admin`: signups dashboard (admin only).
+- `/admin/settings`: configure servers, SMTP, libraries, base URL, requests integration, and view audit log (admin only).
+
 ## Requests app (Seerr)
 
 OpenStream can optionally link to your Requests app during signup and (best-effort) create/import the provisioned user into Seerr.
@@ -40,6 +49,8 @@ Open http://localhost:3070.
 
 OpenStream uses a session cookie for login. For production, you should set a stable `OPENSTREAM_SESSION_SECRET` so sessions remain valid across container recreates.
 
+If you do not set `OPENSTREAM_SESSION_SECRET`, OpenStream will generate one and store it on disk under your data directory (so it stays stable as long as the volume persists), but explicitly setting it is still recommended.
+
 - Copy the example file: `.env.example` → `.env`
 - Generate a secret (PowerShell):
 	- `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
@@ -62,14 +73,47 @@ OpenStream keeps a small rolling set of backups of the state file on each write:
 
 An append-only audit log is stored in the state file and viewable in **Admin settings → Audit**.
 
-### Required admin configuration
+### Configuration checklist (admin)
 
-- Optional: set `NEXT_PUBLIC_OPENSTREAM_POSTER_MARQUEE_SECONDS` to control the poster carousel speed (default: `55`). Restart the app/container after changing it.
-- OpenStream stores state in a local JSON file (path controlled by `OPENSTREAM_DATA_PATH`).
-- Set `OPENSTREAM_PUBLIC_BASE_URL` to the URL users use to access OpenStream (used for invite links).
-	- Examples: `http://192.168.1.167:3070` (LAN) or `https://openstream.example.com` (reverse proxy)
-- For production, set `OPENSTREAM_SESSION_SECRET` (for Compose, put it in `.env`) so login sessions remain valid across container recreates.
-- This is an MVP; we can tighten validations, add resend/expire flows, and harden the Jellyfin/Emby API integration as we go.
+In **/admin/settings**, configure:
+
+- **Base URL**: set the public URL users use to access OpenStream.
+	- This is used to generate invite links.
+	- Example: `https://openstream.example.com` (reverse proxy) or `http://192.168.1.167:3070` (LAN).
+- **SMTP**: required to send invite emails.
+	- If SMTP is missing, the `/signup` request will be rejected.
+- **Servers**: add at least one Jellyfin/Emby server.
+	- Required: server base URL and an admin API key.
+	- Optional: “Connection URL” shown to users (often your public hostname).
+- **Libraries** (optional): choose which libraries are offered during signup.
+- **Requests (Jellyseerr/Overseerr)** (optional): configure Seerr integration (see below).
+
+### Environment variables
+
+- `OPENSTREAM_DATA_PATH` (default is `data/openstream.json` in the container)
+	- Where OpenStream stores persistent state.
+- `OPENSTREAM_PUBLIC_BASE_URL`
+	- Public URL used for invite links.
+- `OPENSTREAM_SESSION_SECRET`
+	- Strong random secret used to sign the session cookie.
+- `OPENSTREAM_DEBUG_ENDPOINTS=1` (optional)
+	- Enables debug endpoints (disabled by default in production).
+- `NEXT_PUBLIC_OPENSTREAM_POSTER_MARQUEE_SECONDS=55` (optional)
+	- Poster carousel speed (seconds per full loop).
+
+### Reverse proxy notes
+
+- Ensure your proxy forwards `X-Forwarded-Proto` (OpenStream uses it to decide whether to set `Secure` cookies).
+- Avoid caching dynamic pages.
+	- OpenStream sets `Cache-Control: private, no-store` and `Vary: Cookie` on user-facing pages, but some proxy/CDN setups can still override this.
+- If you publish OpenStream on the internet, firewall the container so only the reverse proxy can reach it.
+	- Rate limiting is IP-based and uses forwarded IP headers (normal behind a proxy), which should not be trusted from arbitrary clients.
+
+### Built-in endpoints
+
+- `GET /api/health`: runtime/config status.
+- `GET /api/version`: version info.
+	- These endpoints intentionally return limited session-secret diagnostics unless `OPENSTREAM_DEBUG_ENDPOINTS=1` is enabled.
 
 ### Troubleshooting
 
