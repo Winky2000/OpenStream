@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+OpenStream is a lightweight signup + invite flow for Jellyfin/Emby.
 
-## Getting Started
+## What it does
 
-First, run the development server:
+- First run shows `/setup` to set **admin** and **guest** passwords.
+- Guests can access:
+	- `/signup` to submit a username + email
+	- `/guide` for a step-by-step walkthrough
+- OpenStream emails a unique link to `/set-password?token=...`.
+- After the user sets a password, OpenStream provisions the user on Jellyfin/Emby (admin API key required).
+- Admins configure SMTP + Jellyfin/Emby settings and see signups in `/admin`.
+
+## Getting started
+
+Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3070](http://localhost:3070) with your browser to see the result.
+Open http://localhost:3070.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## Docker (production)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Run:
 
-## Learn More
+```bash
+docker compose up --build
+```
 
-To learn more about Next.js, take a look at the following resources:
+This uses port `3070` and persists state to `./data/openstream.json`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Required admin configuration
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Configure SMTP and Jellyfin/Emby base URL + admin API key in `/admin/settings`.
+- Set `OPENSTREAM_PUBLIC_BASE_URL` (used for the emailed invite link). In Docker this is set in `docker-compose.yml`.
 
-## Deploy on Vercel
+## Notes
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- OpenStream stores state in a local JSON file (path controlled by `OPENSTREAM_DATA_PATH`).
+- This is an MVP; we can tighten validations, add resend/expire flows, and harden the Jellyfin/Emby API integration as we go.

@@ -7,3 +7,7 @@ services:
       - NODE_ENV=production
       - PORT=3070
       - HOSTNAME=0.0.0.0
+      - OPENSTREAM_DATA_PATH=/app/data/openstream.json
+      - OPENSTREAM_PUBLIC_BASE_URL=https://openstream.winkys.com
+    volumes:
+      - ./data:/app/data
