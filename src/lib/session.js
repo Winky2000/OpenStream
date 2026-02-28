@@ -4,7 +4,8 @@ import path from 'node:path';
 import { cookies } from 'next/headers';
 import { headers } from 'next/headers';
 
-const COOKIE_NAME = 'openstream_session';
+const COOKIE_NAME = 'openstream_session_v2';
+const LEGACY_COOKIE_NAME = 'openstream_session';
 
 function base64url(buf) {
   return Buffer.from(buf)
@@ -107,6 +108,15 @@ export async function setSession(role) {
     secure,
     path: '/',
   });
+
+  // Best-effort: clear any legacy cookie to avoid redirect loops.
+  c.set(LEGACY_COOKIE_NAME, '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    maxAge: 0,
+  });
 }
 
 export async function clearSession() {
@@ -116,6 +126,14 @@ export async function clearSession() {
 
   const c = await cookies();
   c.set(COOKIE_NAME, '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/',
+    maxAge: 0,
+  });
+
+  c.set(LEGACY_COOKIE_NAME, '', {
     httpOnly: true,
     sameSite: 'lax',
     secure,
