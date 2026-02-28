@@ -193,25 +193,34 @@ function normalizeState(state) {
   return out;
 }
 
-function readRaw() {
-  const p = dataPath();
+function readTextFileIfExists(filePath) {
   try {
-    if (!fs.existsSync(p)) return null;
-    return fs.readFileSync(p, 'utf8');
+    if (!fs.existsSync(filePath)) return null;
+    return fs.readFileSync(filePath, 'utf8');
   } catch {
     return null;
   }
 }
 
 export function readState() {
-  const raw = readRaw();
-  if (!raw) return structuredClone(DEFAULT_STATE);
-  try {
-    const parsed = JSON.parse(raw);
-    return normalizeState(parsed);
-  } catch {
-    return structuredClone(DEFAULT_STATE);
+  const p = dataPath();
+  const candidates = [p];
+  for (let i = 1; i <= MAX_BACKUPS; i += 1) {
+    candidates.push(`${p}.bak${i}`);
   }
+
+  for (const candidate of candidates) {
+    const raw = readTextFileIfExists(candidate);
+    if (!raw) continue;
+    try {
+      const parsed = JSON.parse(raw);
+      return normalizeState(parsed);
+    } catch {
+      // Try next candidate (backup)
+    }
+  }
+
+  return structuredClone(DEFAULT_STATE);
 }
 
 function writeFileAtomic(filePath, content) {
