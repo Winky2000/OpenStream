@@ -3,6 +3,7 @@ import { readState } from '@/lib/store';
 import { verifyPassword } from '@/lib/crypto';
 import { createSessionCookieValue, getSessionCookieName } from '@/lib/session';
 import { rateLimit, pruneRateLimitBuckets } from '@/lib/rateLimit';
+import { shouldUseSecureCookies } from '@/lib/http';
 
 function clearCookie(res, name, { secure, path }) {
   res.cookies.set(name, '', {
@@ -15,8 +16,7 @@ function clearCookie(res, name, { secure, path }) {
 }
 
 export async function POST(req) {
-  const proto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
-  const secure = proto === 'https';
+  const secure = shouldUseSecureCookies(req);
 
   pruneRateLimitBuckets({ maxAgeMs: 60 * 60 * 1000 });
   const rl = rateLimit(req, { keyPrefix: 'login', limit: 20, windowMs: 15 * 60 * 1000 });

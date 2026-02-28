@@ -3,6 +3,7 @@ import { readState } from '@/lib/store';
 import { verifyPassword } from '@/lib/crypto';
 import { createSessionCookieValue, getSessionCookieName } from '@/lib/session';
 import { rateLimit, pruneRateLimitBuckets } from '@/lib/rateLimit';
+import { shouldUseSecureCookies } from '@/lib/http';
 
 export const dynamic = 'force-dynamic';
 
@@ -51,8 +52,7 @@ export async function POST(req) {
   }
 
   const res = NextResponse.json({ ok: true, role });
-  const proto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
-  const secure = proto === 'https';
+  const secure = shouldUseSecureCookies(req);
 
   // Clear any path-scoped cookies that might exist from older builds.
   res.cookies.set(getSessionCookieName(), '', {

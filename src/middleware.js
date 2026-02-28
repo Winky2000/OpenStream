@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { shouldUseSecureCookies } from '@/lib/http';
 
 // Break redirect loops caused by legacy path-scoped session cookies.
 // Some older builds/browsers may have stored the session cookie with the default
@@ -7,8 +8,7 @@ import { NextResponse } from 'next/server';
 export function middleware(req) {
   const res = NextResponse.next();
 
-  const proto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
-  const secure = proto === 'https';
+  const secure = shouldUseSecureCookies(req);
 
   // Clear both current and legacy cookie names for the /login path only.
   // Do NOT clear Path=/ cookies.

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getSessionCookieName } from '@/lib/session';
+import { shouldUseSecureCookies } from '@/lib/http';
 
 export async function POST(req) {
-  const proto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
-  const secure = proto === 'https';
+  const secure = shouldUseSecureCookies(req);
 
   const res = new NextResponse(null, {
     status: 303,
