@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { readState, getPublicBaseUrl } from '@/lib/store';
-import { getSessionCookieName } from '@/lib/session';
+import { getSessionCookieName, getSessionSecretDiagnostics } from '@/lib/session';
 
 export async function GET() {
   const state = readState();
@@ -16,6 +16,7 @@ export async function GET() {
   const publicBaseUrl = getPublicBaseUrl();
   const statePublicBaseUrl = String(state.publicBaseUrl || '').trim().replace(/\/+$/, '');
   const sessionSecretFromEnv = Boolean(String(process.env.OPENSTREAM_SESSION_SECRET || '').trim());
+  const sessionSecret = getSessionSecretDiagnostics();
 
   const seerrUrl = String(state.seerr?.url || '').trim();
   const seerrHasApiKey = Boolean(String(state.seerr?.apiKey || '').trim());
@@ -32,6 +33,7 @@ export async function GET() {
     publicBaseUrlSource: statePublicBaseUrl ? 'state' : publicBaseUrl ? 'env' : 'origin',
     publicBaseUrlValue: statePublicBaseUrl || publicBaseUrl || '',
     sessionSecretFromEnv,
+    sessionSecret,
     smtpConfigured: Boolean(smtpHost && smtpHasFrom),
     enabledServers: enabledServers.length,
     enabledServersConfigured,

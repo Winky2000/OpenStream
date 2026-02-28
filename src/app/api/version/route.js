@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getSessionCookieName } from '@/lib/session';
+import { getSessionCookieName, getSessionSecretDiagnostics } from '@/lib/session';
 
 export async function GET() {
   return NextResponse.json({
@@ -7,6 +7,7 @@ export async function GET() {
     version: '1.0.0',
     cookieName: getSessionCookieName(),
     legacyCookieName: 'openstream_session',
+    sessionSecret: getSessionSecretDiagnostics(),
     time: new Date().toISOString(),
   });
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { headers, cookies } from 'next/headers';
-import { getSession, getSessionCookieName } from '@/lib/session';
+import { getSession, getSessionCookieName, getSessionSecretDiagnostics } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +11,7 @@ export async function GET() {
   const cookieName = getSessionCookieName();
   const raw = c.get(cookieName)?.value || '';
   const session = await getSession();
+  const sessionSecret = getSessionSecretDiagnostics();
 
   return NextResponse.json({
     time: new Date().toISOString(),
@@ -20,5 +21,6 @@ export async function GET() {
     hasCookie: Boolean(raw),
     cookieLength: raw.length,
     session,
+    sessionSecret,
   });
 }

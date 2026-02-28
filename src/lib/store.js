@@ -11,6 +11,10 @@ function dataPath() {
     : DEFAULT_DATA_PATH;
 }
 
+export function getResolvedDataPath() {
+  return dataPath();
+}
+
 function ensureDir(filePath) {
   const dir = path.dirname(filePath);
   fs.mkdirSync(dir, { recursive: true });

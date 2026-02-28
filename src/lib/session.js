@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { cookies } from 'next/headers';
 import { headers } from 'next/headers';
+import { getResolvedDataPath } from '@/lib/store';
 
 const COOKIE_NAME = 'openstream_session_v2';
 const LEGACY_COOKIE_NAME = 'openstream_session';
@@ -37,11 +38,62 @@ function base64urlToBuf(str) {
 
 let cachedSecret = null;
 let warnedProdSecret = false;
+
+let cachedSecretSource = 'unknown';
+let cachedSecretPath = '';
+
+function getSecretPath() {
+  const resolvedDataPath = getResolvedDataPath();
+  return path.join(path.dirname(resolvedDataPath), 'openstream.session_secret');
+}
+
+function fileAccessFlags(p) {
+  const exists = fs.existsSync(p);
+  let readable = false;
+  let writable = false;
+  if (exists) {
+    try {
+      fs.accessSync(p, fs.constants.R_OK);
+      readable = true;
+    } catch {
+      readable = false;
+    }
+    try {
+      fs.accessSync(p, fs.constants.W_OK);
+      writable = true;
+    } catch {
+      writable = false;
+    }
+  } else {
+    const dir = path.dirname(p);
+    try {
+      fs.accessSync(dir, fs.constants.W_OK);
+      writable = true;
+    } catch {
+      writable = false;
+    }
+  }
+  return { exists, readable, writable };
+}
+
+export function getSessionSecretDiagnostics() {
+  const p = cachedSecretPath || getSecretPath();
+  const access = fileAccessFlags(p);
+  return {
+    source: cachedSecretSource,
+    fromEnv: Boolean(String(process.env.OPENSTREAM_SESSION_SECRET || '').trim()),
+    path: p,
+    file: access,
+  };
+}
+
 function getSecret() {
   if (cachedSecret) return cachedSecret;
   const env = String(process.env.OPENSTREAM_SESSION_SECRET || '').trim();
   if (env) {
     cachedSecret = Buffer.from(env, 'utf8');
+    cachedSecretSource = 'env';
+    cachedSecretPath = '';
     return cachedSecret;
   }
 
@@ -53,12 +105,14 @@ function getSecret() {
   }
 
   // Dev/default: persist a generated secret so sessions survive reloads/workers.
-  const secretPath = path.join(process.cwd(), 'data', 'openstream.session_secret');
+  const secretPath = getSecretPath();
+  cachedSecretPath = secretPath;
   try {
     if (fs.existsSync(secretPath)) {
       const raw = String(fs.readFileSync(secretPath, 'utf8') || '').trim();
       if (raw) {
         cachedSecret = Buffer.from(raw, 'utf8');
+        cachedSecretSource = 'file';
         return cachedSecret;
       }
     }
@@ -72,12 +126,14 @@ function getSecret() {
     // Use wx for best-effort atomic create; if it already exists, we'll read it.
     fs.writeFileSync(secretPath, generated, { encoding: 'utf8', flag: 'wx' });
     cachedSecret = Buffer.from(generated, 'utf8');
+    cachedSecretSource = 'file';
     return cachedSecret;
   } catch {
     try {
       const raw = String(fs.readFileSync(secretPath, 'utf8') || '').trim();
       if (raw) {
         cachedSecret = Buffer.from(raw, 'utf8');
+        cachedSecretSource = 'file';
         return cachedSecret;
       }
     } catch {
@@ -87,6 +143,7 @@ function getSecret() {
 
   // Last resort (should be rare): in-memory secret.
   cachedSecret = crypto.randomBytes(32);
+  cachedSecretSource = 'memory';
   return cachedSecret;
 }
 
