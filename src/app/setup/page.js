@@ -3,6 +3,8 @@ import styles from '../ui.module.css';
 import { readState, writeState } from '@/lib/store';
 import { hashPassword } from '@/lib/crypto';
 
+export const dynamic = 'force-dynamic';
+
 export default function SetupPage({ searchParams }) {
   const state = readState();
   if (state.setup?.complete) {
