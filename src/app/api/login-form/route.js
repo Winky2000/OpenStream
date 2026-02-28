@@ -64,7 +64,9 @@ export async function POST(req) {
     });
   }
 
-  const dest = role === 'admin' ? '/admin' : '/signup';
+  // Redirect to the app root; it will route based on the session.
+  // This avoids edge cases where direct navigation to /admin or /signup gets bounced.
+  const dest = '/';
   const res = new NextResponse(null, {
     status: 303,
     headers: { Location: dest, 'Cache-Control': 'no-store' },
