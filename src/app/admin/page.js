@@ -214,6 +214,7 @@ export default async function AdminPage() {
       <div className={styles.row}>
         <h1 className={styles.h1}>Admin</h1>
         <div className={styles.row}>
+          <a className={styles.a} href="/signup">Signup</a>
           <a className={styles.a} href="/admin/settings">Settings</a>
           <form action={async () => {
             'use server';

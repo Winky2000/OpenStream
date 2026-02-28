@@ -118,13 +118,18 @@ export default async function SignupPage({ searchParams }) {
 
       <div className={styles.row}>
         <h1 className={styles.h1}>Welcome to Jellyfin / Emby</h1>
-        <form action={async () => {
-          'use server';
-          await clearSession();
-          redirect('/login');
-        }}>
-          <button className={styles.linkButton} type="submit">Logout</button>
-        </form>
+        <div className={styles.row}>
+          {session.role === 'admin' ? (
+            <a className={styles.a} href="/admin">Admin</a>
+          ) : null}
+          <form action={async () => {
+            'use server';
+            await clearSession();
+            redirect('/login');
+          }}>
+            <button className={styles.linkButton} type="submit">Logout</button>
+          </form>
+        </div>
       </div>
 
       <p className={styles.p}>
