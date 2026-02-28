@@ -26,7 +26,5 @@ export function middleware(req) {
 }
 
 export const config = {
-  // Run on all routes so the browser gets the deletion Set-Cookie even during
-  // redirect chains.
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/login/:path*'],
 };
