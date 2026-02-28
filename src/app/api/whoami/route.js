@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { headers, cookies } from 'next/headers';
 import { getSession, getSessionCookieName, getSessionSecretDiagnostics } from '@/lib/session';
+import { instanceId } from '@/lib/instance';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +16,7 @@ export async function GET() {
 
   return NextResponse.json({
     time: new Date().toISOString(),
+    instanceId,
     host: h.get('host') || '',
     proto: h.get('x-forwarded-proto') || '',
     cookieName,

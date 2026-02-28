@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession, getSessionCookieName } from '@/lib/session';
+import { instanceId } from '@/lib/instance';
 
 function parseCookies(cookieHeader) {
   const out = {};
@@ -50,6 +51,7 @@ export async function GET(req) {
   return NextResponse.json({
     path: '/signup/debug',
     time: new Date().toISOString(),
+    instanceId,
     host,
     proto,
     userAgent: ua,
