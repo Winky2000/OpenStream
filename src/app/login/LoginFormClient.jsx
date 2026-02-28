@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import styles from '../ui.module.css';
 
 function errorMessageForKey(key) {
@@ -15,30 +15,6 @@ export default function LoginFormClient({ initialErrorKey = '' }) {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(() => errorMessageForKey(initialErrorKey));
-
-  useEffect(() => {
-    const ctrl = new AbortController();
-    (async () => {
-      try {
-        const res = await fetch('/api/whoami', {
-          method: 'GET',
-          credentials: 'same-origin',
-          cache: 'no-store',
-          signal: ctrl.signal,
-        });
-        if (!res.ok) return;
-        const data = await res.json().catch(() => null);
-        const role = data?.session?.role;
-        if (role === 'admin' || role === 'guest') {
-          window.location.replace('/');
-        }
-      } catch {
-        // ignore
-      }
-    })();
-
-    return () => ctrl.abort();
-  }, []);
 
   const canSubmit = useMemo(() => password.trim().length > 0 && !submitting, [password, submitting]);
 
