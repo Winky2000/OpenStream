@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import styles from '../ui.module.css';
 import { readState } from '@/lib/store';
 import { getSession } from '@/lib/session';
+import LoginFormClient from './LoginFormClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,22 +53,7 @@ export default async function LoginPage({ searchParams }) {
     <div className={styles.container}>
       <h1 className={styles.h1}>Login</h1>
 
-      {errorMessage ? (
-        <div className={styles.block} role="alert">
-          <p className={styles.p} style={{ margin: 0 }}>
-            <strong>{errorMessage}</strong>
-          </p>
-        </div>
-      ) : null}
-
-      <form className={styles.form} method="post" action="/api/login-form">
-        <label className={styles.label}>
-          Password
-          <input className={styles.input} type="password" name="password" required />
-        </label>
-
-        <button className={styles.button} type="submit">Login</button>
-      </form>
+      <LoginFormClient initialErrorKey={errorKey} />
     </div>
   );
 }
