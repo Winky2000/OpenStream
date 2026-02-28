@@ -3,9 +3,11 @@ import styles from '../ui.module.css';
 import { readState } from '@/lib/store';
 import { getRequestOrigin } from '@/lib/request';
 
+export const dynamic = 'force-dynamic';
+
 export default async function SetPasswordPage({ searchParams }) {
   const state = readState();
-  if (!state.setup?.complete) redirect('/setup');
+  const setupComplete = Boolean(state.setup?.complete);
 
   const sp = await Promise.resolve(searchParams);
   const token = String(sp?.token || '');
@@ -45,6 +47,14 @@ export default async function SetPasswordPage({ searchParams }) {
       <h1 className={styles.h1}>Set your password</h1>
       <p className={styles.p}>Choose a password to finish creating your account.</p>
 
+      {!setupComplete ? (
+        <p className={styles.p}>
+          <strong>OpenStream isn’t set up yet.</strong> Ask an admin to complete setup first.
+          {' '}
+          <a className={styles.a} href="/setup">Go to setup</a>
+        </p>
+      ) : null}
+
       {done ? (
         <p className={styles.p}><strong>Success.</strong> Your account was created. You can now log in to Jellyfin/Emby with your username and password.</p>
       ) : null}
@@ -53,7 +63,7 @@ export default async function SetPasswordPage({ searchParams }) {
         <p className={styles.p}><strong>Couldn’t create your account.</strong> {err}</p>
       ) : null}
 
-      {done ? null : (
+      {done || !setupComplete ? null : (
         <form className={styles.form} action={setPasswordAction}>
           <input type="hidden" name="token" value={token} />
           <label className={styles.label}>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { shouldUseSecureCookies } from '@/lib/http';
+import { instanceId } from '@/lib/instance';
 
 // Break redirect loops caused by legacy path-scoped session cookies.
 // Some older builds/browsers may have stored the session cookie with the default
@@ -14,6 +15,10 @@ export function middleware(req) {
   // (Some setups can otherwise serve a cached redirect-to-/login.)
   res.headers.set('Cache-Control', 'private, no-store');
   res.headers.append('Vary', 'Cookie');
+
+  // Trace which backend served the page (useful for debugging proxy/load-balancing issues).
+  res.headers.set('X-OpenStream-Instance', String(instanceId));
+  res.headers.set('X-OpenStream-Path', String(req.nextUrl?.pathname || ''));
 
   const pathname = req.nextUrl?.pathname || '';
 
