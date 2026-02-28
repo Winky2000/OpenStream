@@ -39,8 +39,11 @@ Open http://localhost:3070.
 Run:
 
 ```bash
+docker compose pull
 docker compose up --build
 ```
+
+This will pull the published image from GHCR (default tag: `latest`).
 
 This uses port `3070` and persists state to `./data/openstream.json`.
 
