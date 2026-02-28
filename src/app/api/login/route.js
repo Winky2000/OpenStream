@@ -4,6 +4,17 @@ import { verifyPassword } from '@/lib/crypto';
 import { createSessionCookieValue, getSessionCookieName } from '@/lib/session';
 import { rateLimit, pruneRateLimitBuckets } from '@/lib/rateLimit';
 
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    endpoint: '/api/login',
+    methods: ['POST'],
+    note: 'Send JSON {password} via POST to create a session cookie.',
+  });
+}
+
 export async function POST(req) {
   pruneRateLimitBuckets({ maxAgeMs: 60 * 60 * 1000 });
   const rl = rateLimit(req, { keyPrefix: 'login', limit: 20, windowMs: 15 * 60 * 1000 });
