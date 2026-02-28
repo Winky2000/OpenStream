@@ -17,6 +17,18 @@ export function middleware(req) {
 
   const pathname = req.nextUrl?.pathname || '';
 
+  // Safety net: if an invite link accidentally lands on /login with a token
+  // (e.g., due to a reverse proxy rewrite), send it to the set-password page.
+  // This keeps invite links working even when the base URL is misconfigured.
+  if (pathname.startsWith('/login')) {
+    const token = req.nextUrl?.searchParams?.get('token') || '';
+    if (token) {
+      const dest = new URL('/set-password', req.url);
+      dest.searchParams.set('token', token);
+      return NextResponse.redirect(dest, 302);
+    }
+  }
+
   // Only clear legacy /login-scoped cookies on /login.
   if (!pathname.startsWith('/login')) {
     return res;
