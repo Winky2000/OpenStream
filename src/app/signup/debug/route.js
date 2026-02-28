@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getSession, getSessionCookieName } from '@/lib/session';
 
 function parseCookies(cookieHeader) {
   const out = {};
@@ -20,6 +21,7 @@ export async function GET(req) {
   const host = req.headers.get('host') || '';
   const proto = req.headers.get('x-forwarded-proto') || '';
   const ua = req.headers.get('user-agent') || '';
+  const session = await getSession();
 
   return NextResponse.json({
     path: '/signup/debug',
@@ -29,6 +31,8 @@ export async function GET(req) {
     userAgent: ua,
     cookieHeader,
     cookies: parseCookies(cookieHeader),
+    sessionCookieName: getSessionCookieName(),
+    session,
     rsc: Boolean(req.headers.get('rsc')),
     nextAction: req.headers.get('next-action') || '',
     accept: req.headers.get('accept') || '',
