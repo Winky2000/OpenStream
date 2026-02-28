@@ -4,26 +4,6 @@ import { verifyPassword } from '@/lib/crypto';
 import { createSessionCookieValue, getSessionCookieName } from '@/lib/session';
 import { rateLimit, pruneRateLimitBuckets } from '@/lib/rateLimit';
 
-function getExternalOrigin(req) {
-  const xfProto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
-  const xfHost = String(req.headers.get('x-forwarded-host') || '').trim();
-  const host = String(req.headers.get('host') || '').trim();
-
-  let proto = xfProto;
-  if (!proto) {
-    try {
-      proto = new URL(req.url).protocol.replace(':', '');
-    } catch {
-      proto = 'http';
-    }
-  }
-  if (proto !== 'https') proto = 'http';
-
-  const resolvedHost = xfHost || host;
-  if (!resolvedHost) return '';
-  return `${proto}://${resolvedHost}`;
-}
-
 function clearCookie(res, name, { secure, path }) {
   res.cookies.set(name, '', {
     httpOnly: true,
@@ -35,12 +15,19 @@ function clearCookie(res, name, { secure, path }) {
 }
 
 export async function POST(req) {
-  const origin = getExternalOrigin(req);
+  const proto = String(req.headers.get('x-forwarded-proto') || '').toLowerCase();
+  const secure = proto === 'https';
 
   pruneRateLimitBuckets({ maxAgeMs: 60 * 60 * 1000 });
   const rl = rateLimit(req, { keyPrefix: 'login', limit: 20, windowMs: 15 * 60 * 1000 });
   if (!rl.ok) {
-    const res = NextResponse.redirect(new URL('/login?error=rate', origin || req.url), { status: 303 });
+    const res = new NextResponse(null, {
+      status: 303,
+      headers: {
+        Location: '/login?error=rate',
+        'Cache-Control': 'no-store',
+      },
+    });
     res.headers.set('Retry-After', String(rl.retryAfterSeconds));
     return res;
   }
@@ -56,7 +43,10 @@ export async function POST(req) {
 
   const state = readState();
   if (!state.setup?.complete) {
-    return NextResponse.redirect(new URL('/setup', origin || req.url), { status: 303 });
+    return new NextResponse(null, {
+      status: 303,
+      headers: { Location: '/setup', 'Cache-Control': 'no-store' },
+    });
   }
 
   const adminHash = String(state.setup.adminPasswordHash || '');
@@ -68,13 +58,17 @@ export async function POST(req) {
   } else if (guestHash && verifyPassword(password, guestHash)) {
     role = 'guest';
   } else {
-    return NextResponse.redirect(new URL('/login?error=invalid', origin || req.url), { status: 303 });
+    return new NextResponse(null, {
+      status: 303,
+      headers: { Location: '/login?error=invalid', 'Cache-Control': 'no-store' },
+    });
   }
 
-  const secure = origin.startsWith('https://');
-
   const dest = role === 'admin' ? '/admin' : '/signup';
-  const res = NextResponse.redirect(new URL(dest, origin || req.url), { status: 303 });
+  const res = new NextResponse(null, {
+    status: 303,
+    headers: { Location: dest, 'Cache-Control': 'no-store' },
+  });
 
   // Clear any path-scoped legacy cookies.
   clearCookie(res, getSessionCookieName(), { secure, path: '/login' });
