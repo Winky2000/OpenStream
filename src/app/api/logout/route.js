@@ -6,7 +6,7 @@ export async function POST(req) {
   const secure = proto === 'https';
   const res = NextResponse.json({ ok: true });
 
-  for (const p of ['/', '/login']) {
+  for (const p of ['/', '/login', '/api']) {
     res.cookies.set(getSessionCookieName(), '', {
       httpOnly: true,
       sameSite: 'lax',

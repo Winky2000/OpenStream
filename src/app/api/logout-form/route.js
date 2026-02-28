@@ -10,7 +10,7 @@ export async function POST(req) {
     headers: { Location: '/login', 'Cache-Control': 'no-store' },
   });
 
-  for (const p of ['/', '/login']) {
+  for (const p of ['/', '/login', '/api']) {
     res.cookies.set(getSessionCookieName(), '', {
       httpOnly: true,
       sameSite: 'lax',

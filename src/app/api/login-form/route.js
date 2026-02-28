@@ -72,8 +72,10 @@ export async function POST(req) {
 
   // Clear any path-scoped legacy cookies.
   clearCookie(res, getSessionCookieName(), { secure, path: '/login' });
+  clearCookie(res, getSessionCookieName(), { secure, path: '/api' });
   clearCookie(res, 'openstream_session', { secure, path: '/' });
   clearCookie(res, 'openstream_session', { secure, path: '/login' });
+  clearCookie(res, 'openstream_session', { secure, path: '/api' });
 
   res.cookies.set(getSessionCookieName(), createSessionCookieValue(role), {
     httpOnly: true,

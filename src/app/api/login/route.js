@@ -51,6 +51,13 @@ export async function POST(req) {
     path: '/login',
     maxAge: 0,
   });
+  res.cookies.set(getSessionCookieName(), '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/api',
+    maxAge: 0,
+  });
   res.cookies.set('openstream_session', '', {
     httpOnly: true,
     sameSite: 'lax',
@@ -63,6 +70,13 @@ export async function POST(req) {
     sameSite: 'lax',
     secure,
     path: '/login',
+    maxAge: 0,
+  });
+  res.cookies.set('openstream_session', '', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure,
+    path: '/api',
     maxAge: 0,
   });
 

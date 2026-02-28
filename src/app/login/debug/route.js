@@ -16,12 +16,36 @@ function parseCookies(cookieHeader) {
   return out;
 }
 
+function parseCookiePairs(cookieHeader) {
+  const pairs = [];
+  const raw = String(cookieHeader || '');
+  if (!raw) return pairs;
+  for (const part of raw.split(';')) {
+    const idx = part.indexOf('=');
+    if (idx <= 0) continue;
+    const name = part.slice(0, idx).trim();
+    const value = part.slice(idx + 1).trim();
+    if (!name) continue;
+    pairs.push({ name, value });
+  }
+  return pairs;
+}
+
+function countCookieNames(pairs) {
+  const counts = {};
+  for (const { name } of pairs) {
+    counts[name] = (counts[name] || 0) + 1;
+  }
+  return counts;
+}
+
 export async function GET(req) {
   const cookieHeader = req.headers.get('cookie') || '';
   const host = req.headers.get('host') || '';
   const proto = req.headers.get('x-forwarded-proto') || '';
   const ua = req.headers.get('user-agent') || '';
   const session = await getSession();
+  const cookiePairs = parseCookiePairs(cookieHeader);
 
   return NextResponse.json({
     path: '/login/debug',
@@ -31,6 +55,8 @@ export async function GET(req) {
     userAgent: ua,
     cookieHeader,
     cookies: parseCookies(cookieHeader),
+    cookiePairs,
+    cookieNameCounts: countCookieNames(cookiePairs),
     sessionCookieName: getSessionCookieName(),
     session,
     rsc: Boolean(req.headers.get('rsc')),

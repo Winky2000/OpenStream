@@ -7,7 +7,7 @@ import { headers } from 'next/headers';
 const COOKIE_NAME = 'openstream_session_v2';
 const LEGACY_COOKIE_NAME = 'openstream_session';
 
-const CLEAR_PATHS = ['/', '/login'];
+const CLEAR_PATHS = ['/', '/login', '/api'];
 
 function clearCookiePaths(cookieJar, name, paths, { secure }) {
   for (const p of paths) {
@@ -119,7 +119,7 @@ export async function setSession(role) {
 
   // Best-effort: clear any legacy or path-scoped cookies to avoid redirect loops.
   // (Older builds may have created cookies scoped to Path=/login by default.)
-  clearCookiePaths(c, COOKIE_NAME, ['/login'], { secure });
+  clearCookiePaths(c, COOKIE_NAME, ['/login', '/api'], { secure });
   clearCookiePaths(c, LEGACY_COOKIE_NAME, CLEAR_PATHS, { secure });
 
   c.set(COOKIE_NAME, value, {
