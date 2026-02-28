@@ -50,6 +50,13 @@ export default async function LoginPage({ searchParams }) {
       await setSession(role);
       redirect(role === 'admin' ? '/admin' : '/signup');
     } catch (e) {
+      const digest = e && typeof e === 'object' && 'digest' in e ? String(e.digest || '') : '';
+      const msg = String(e?.message || '');
+      // In Next.js, redirect()/notFound() are implemented by throwing special errors.
+      // Let them bubble; they're not real failures.
+      if (msg === 'NEXT_REDIRECT' || digest.startsWith('NEXT_REDIRECT')) throw e;
+      if (msg === 'NEXT_NOT_FOUND' || digest.startsWith('NEXT_NOT_FOUND')) throw e;
+
       console.error('[OpenStream] loginAction failed', e);
       redirect('/login?error=unexpected');
     }
