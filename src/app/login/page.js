@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
 import styles from '../ui.module.css';
 import { readState } from '@/lib/store';
-import { clearSession, getSession, setSession } from '@/lib/session';
-import { verifyPassword } from '@/lib/crypto';
+import { getSession } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -33,57 +32,18 @@ export default async function LoginPage({ searchParams }) {
           Continue to <a className={styles.a} href={dest}>{dest}</a>.
         </p>
 
-        <form
-          action={async () => {
-            'use server';
-            await clearSession();
-            redirect('/login');
-          }}
-        >
+        <form method="post" action="/api/logout-form">
           <button className={styles.linkButton} type="submit">Logout</button>
         </form>
       </div>
     );
   }
 
-  async function loginAction(formData) {
-    'use server';
-    try {
-      const password = String(formData.get('password') || '');
-
-      const state2 = readState();
-      if (!state2.setup?.complete) redirect('/setup');
-
-      const adminHash = String(state2.setup?.adminPasswordHash || '');
-      const guestHash = String(state2.setup?.guestPasswordHash || '');
-
-      let role = '';
-      if (adminHash && verifyPassword(password, adminHash)) {
-        role = 'admin';
-      } else if (guestHash && verifyPassword(password, guestHash)) {
-        role = 'guest';
-      } else {
-        redirect('/login?error=invalid');
-      }
-
-      await setSession(role);
-      redirect(role === 'admin' ? '/admin' : '/signup');
-    } catch (e) {
-      const digest = e && typeof e === 'object' && 'digest' in e ? String(e.digest || '') : '';
-      const msg = String(e?.message || '');
-      // In Next.js, redirect()/notFound() are implemented by throwing special errors.
-      // Let them bubble; they're not real failures.
-      if (msg === 'NEXT_REDIRECT' || digest.startsWith('NEXT_REDIRECT')) throw e;
-      if (msg === 'NEXT_NOT_FOUND' || digest.startsWith('NEXT_NOT_FOUND')) throw e;
-
-      console.error('[OpenStream] loginAction failed', e);
-      redirect('/login?error=unexpected');
-    }
-  }
-
   const errorMessage =
     errorKey === 'invalid'
       ? 'Invalid password.'
+      : errorKey === 'rate'
+        ? 'Too many attempts. Please wait and try again.'
       : errorKey === 'unexpected'
         ? 'Login failed. Please try again.'
         : '';
@@ -100,7 +60,7 @@ export default async function LoginPage({ searchParams }) {
         </div>
       ) : null}
 
-      <form className={styles.form} action={loginAction}>
+      <form className={styles.form} method="post" action="/api/login-form">
         <label className={styles.label}>
           Password
           <input className={styles.input} type="password" name="password" required />
