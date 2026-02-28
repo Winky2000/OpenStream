@@ -10,6 +10,18 @@ export function middleware(req) {
 
   const secure = shouldUseSecureCookies(req);
 
+  // Help prevent reverse proxies from caching session-dependent pages.
+  // (Some setups can otherwise serve a cached redirect-to-/login.)
+  res.headers.set('Cache-Control', 'private, no-store');
+  res.headers.append('Vary', 'Cookie');
+
+  const pathname = req.nextUrl?.pathname || '';
+
+  // Only clear legacy /login-scoped cookies on /login.
+  if (!pathname.startsWith('/login')) {
+    return res;
+  }
+
   // Clear both current and legacy cookie names for the /login path only.
   // Do NOT clear Path=/ cookies.
   for (const name of ['openstream_session', 'openstream_session_v2']) {
@@ -26,5 +38,7 @@ export function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/login/:path*'],
+  // Apply no-store + Vary: Cookie across user-facing pages.
+  // Exclude /api and Next static assets.
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
