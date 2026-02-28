@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession, getSessionCookieName } from '@/lib/session';
 import { instanceId } from '@/lib/instance';
+import { debugEndpointsEnabled } from '@/lib/debug';
 
 function parseCookies(cookieHeader) {
   const out = {};
@@ -41,6 +42,12 @@ function countCookieNames(pairs) {
 }
 
 export async function GET(req) {
+  if (!debugEndpointsEnabled()) {
+    const res = new NextResponse('Not Found', { status: 404 });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
+  }
+
   const cookieHeader = req.headers.get('cookie') || '';
   const host = req.headers.get('host') || '';
   const proto = req.headers.get('x-forwarded-proto') || '';
@@ -48,7 +55,7 @@ export async function GET(req) {
   const session = await getSession();
   const cookiePairs = parseCookiePairs(cookieHeader);
 
-  return NextResponse.json({
+  const res = NextResponse.json({
     path: '/login/debug',
     time: new Date().toISOString(),
     instanceId,
@@ -65,5 +72,8 @@ export async function GET(req) {
     nextAction: req.headers.get('next-action') || '',
     accept: req.headers.get('accept') || '',
   });
+
+  res.headers.set('Cache-Control', 'no-store');
+  return res;
 }
 

@@ -75,3 +75,13 @@ An append-only audit log is stored in the state file and viewable in **Admin set
 
 - Check runtime status: `/api/health`
 - Confirm which build is running: `/api/version`
+
+Optional debug endpoints (disabled in production by default):
+
+- Enable with `OPENSTREAM_DEBUG_ENDPOINTS=1`
+- Debug routes:
+	- `/api/whoami`
+	- `/login/debug`
+	- `/signup/debug`
+	- `/admin/debug`
+	- `/api/login` (GET only; POST is always available)

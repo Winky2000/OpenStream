@@ -88,7 +88,7 @@ export function getSessionSecretDiagnostics() {
   return {
     source: cachedSecretSource,
     fromEnv: Boolean(String(process.env.OPENSTREAM_SESSION_SECRET || '').trim()),
-    path: p,
+    fileName: path.basename(p),
     file: access,
   };
 }

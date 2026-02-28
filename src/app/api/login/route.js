@@ -4,10 +4,17 @@ import { verifyPassword } from '@/lib/crypto';
 import { createSessionCookieValue, getSessionCookieName } from '@/lib/session';
 import { rateLimit, pruneRateLimitBuckets } from '@/lib/rateLimit';
 import { shouldUseSecureCookies } from '@/lib/http';
+import { debugEndpointsEnabled } from '@/lib/debug';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  if (!debugEndpointsEnabled()) {
+    const res = new NextResponse('Not Found', { status: 404 });
+    res.headers.set('Cache-Control', 'no-store');
+    return res;
+  }
+
   return NextResponse.json({
     ok: true,
     endpoint: '/api/login',
