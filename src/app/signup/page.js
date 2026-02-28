@@ -13,7 +13,17 @@ export default async function SignupPage({ searchParams }) {
   if (!state.setup?.complete) redirect('/setup');
 
   const session = await getSession();
-  if (!session) redirect('/login');
+  if (!session) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.h1}>Login required</h1>
+        <p className={styles.p}>Please log in to continue.</p>
+        <p className={styles.p}>
+          <a className={styles.a} href="/login">Go to login</a>
+        </p>
+      </div>
+    );
+  }
 
   const sp = await Promise.resolve(searchParams);
   const sent = String(sp?.sent || '') === '1';

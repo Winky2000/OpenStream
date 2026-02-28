@@ -8,8 +8,29 @@ export default async function AdminSettingsLayout({ children }) {
   if (!state.setup?.complete) redirect('/setup');
 
   const session = await getSession();
-  if (!session) redirect('/login');
-  if (session.role !== 'admin') redirect('/signup');
+  if (!session) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.h1}>Login required</h1>
+        <p className={styles.p}>Please log in as an admin to continue.</p>
+        <p className={styles.p}>
+          <a className={styles.a} href="/login">Go to login</a>
+        </p>
+      </div>
+    );
+  }
+
+  if (session.role !== 'admin') {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.h1}>Admin only</h1>
+        <p className={styles.p}>You’re logged in, but this page requires admin access.</p>
+        <p className={styles.p}>
+          <a className={styles.a} href="/signup">Go to signup</a>
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
