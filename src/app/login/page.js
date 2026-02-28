@@ -25,19 +25,9 @@ export default async function LoginPage({ searchParams }) {
 
   const session = await getSession();
   if (session?.role === 'admin' || session?.role === 'guest') {
-    const dest = session.role === 'admin' ? '/admin' : '/signup';
-    return (
-      <div className={styles.container}>
-        <h1 className={styles.h1}>You’re already logged in</h1>
-        <p className={styles.p}>
-          Continue to <a className={styles.a} href={dest}>{dest}</a>.
-        </p>
-
-        <form method="post" action="/api/logout-form">
-          <button className={styles.linkButton} type="submit">Logout</button>
-        </form>
-      </div>
-    );
+    // Redirect to the root; it will route based on session.
+    // This avoids confusion where the URL stays on /login even though auth succeeded.
+    redirect('/');
   }
 
   const errorMessage =
